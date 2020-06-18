@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Sample Calender</string>
+    <string name="textview_label">This is a TextView sample.</string>
+</resources>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/dateText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:gravity="center_horizontal" />
+
+    <!--ここに拡張可能-->
+    <TextView
+        android:id="@+id/am"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginRight="1dp"
+        android:textAlignment="center"
+        android:text=""
+        android:textColor="@color/blackColor"
+        android:background="@color/whiteColor"
+        android:layout_marginEnd="1dp"
+        android:gravity="center_horizontal" />
+
+    <TextView
+        android:id="@+id/pm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginRight="1dp"
+        android:textAlignment="center"
+        android:text=""
+        android:textColor="@color/blackColor"
+        android:background="@color/whiteColor"
+        android:layout_marginEnd="1dp"
+        android:gravity="center_horizontal" />
+
+    <TextView
+        android:id="@+id/night"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginRight="1dp"
+        android:textAlignment="center"
+        android:text=""
+        android:textColor="@color/blackColor"
+        android:background="@color/whiteColor"
+        android:layout_marginEnd="1dp"
+        android:gravity="center_horizontal" />
+
+</LinearLayout>
