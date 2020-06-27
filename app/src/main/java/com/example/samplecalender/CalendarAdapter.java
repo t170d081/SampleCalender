@@ -2,7 +2,10 @@ package com.example.samplecalender;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +23,13 @@ public class CalendarAdapter extends BaseAdapter {
     private Context mContext;
     private DateManager mDateManager;
     private LayoutInflater mLayoutInflater;
+
+
+    private String plans;
+    private String amText = "#ffffff";
+    private String pmText = "#ffffff";
+    private String nightText = "#ffffff";
+
 
     //カスタムセルを拡張したらここでWigetを定義
     private static class ViewHolder {
@@ -73,12 +83,45 @@ public class CalendarAdapter extends BaseAdapter {
             convertView.setBackgroundColor(Color.LTGRAY);
         }
 
+        //SQLセットアップ
+        MyOpenHelper helper = new MyOpenHelper(mContext);
+        SQLiteDatabase db = helper.getReadableDatabase();
+
+        //queryメソッドの実行例(おそらくDBのテーブルについて)
+        Cursor c = db.query("Schedule", new String[] {"TimeDivision","Colors"},
+                null, null, null, null, null);
+
+        boolean mov = c.moveToFirst();
+        while (mov) {
+            plans = c.getString(0);
+            Log.v("checked", plans);
+
+            //DB内の時間ごとの予定を見て色を確保
+            switch(plans){
+                case "午前":
+                    amText = c.getString(1);
+                    break;
+                case "昼間":
+                    pmText = c.getString(1);
+                    break;
+                case "夜":
+                    nightText = c.getString(1);
+                    break;
+                default:
+                    break;
+            }
+            mov = c.moveToNext();
+        }
+        c.close();
+        db.close();
+
+
         //当日の背景を黄色に（今回追記）
         if (mDateManager.isToday(dateArray.get(position))) {
             /*convertView.setBackgroundColor(Color.YELLOW);*/
-            holder.am.setBackgroundColor(Color.RED);
-            holder.pm.setBackgroundColor(Color.BLUE);
-            holder.night.setBackgroundColor(Color.GREEN);
+            holder.am.setBackgroundColor(Color.parseColor(amText));
+            holder.pm.setBackgroundColor(Color.parseColor(pmText));
+            holder.night.setBackgroundColor(Color.parseColor(nightText));
         }
 
         //日曜日を赤、土曜日を青に
@@ -129,6 +172,4 @@ public class CalendarAdapter extends BaseAdapter {
         dateArray = mDateManager.getDays();
         this.notifyDataSetChanged();
     }
-
-
 }

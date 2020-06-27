@@ -23,15 +23,15 @@ public class ShowDataBase extends Activity {
         SQLiteDatabase db = helper.getReadableDatabase();
 
         // queryメソッドの実行例(おそらくDBのテーブルについて)
-        Cursor c = db.query("Schedule", new String[] { "Date", "TimeDivision","Plans"},
+        Cursor c = db.query("Schedule", new String[] {"Date", "TimeDivision","Plans","Colors"},
                 null, null, null, null, null);
 
         //不明ｗ
         boolean mov = c.moveToFirst();
         while (mov) {
             TextView textView = new TextView(this);
-            textView.setText(String.format("%s : %s : %s ", c.getString(0),
-                    c.getString(1),c.getString(2)));
+            textView.setText(String.format("%s : %s : %s : %s", c.getString(0),
+                    c.getString(1),c.getString(2),c.getString(3)));
             mov = c.moveToNext();
             layout.addView(textView);
         }

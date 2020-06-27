@@ -12,11 +12,12 @@ public class MyOpenHelper extends SQLiteOpenHelper {
         super(context, "NameAgeDB", null, 1);
     }
 
+
     //SQLのコマンドしてくれている？
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table Schedule(" + " Date text not null," + "TimeDivision text," +
-                "Plans text" + ");");
+                "Plans text," + "Colors text" + " );");
     }
 
     @Override

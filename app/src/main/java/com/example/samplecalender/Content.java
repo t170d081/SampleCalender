@@ -15,8 +15,11 @@ import androidx.appcompat.app.AppCompatActivity;
 public class Content extends AppCompatActivity {
 
     private String currentDate;
-    private String timedivision;
-    private String plans;
+    private String timeDivision = "なし";
+    private String plans = "なし";
+    private String color = "#FFFFFF";
+
+    private boolean flag;
 
 
     @Override
@@ -38,16 +41,18 @@ public class Content extends AppCompatActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId != -1) {
+                    flag = true;
+
                     // 選択されているラジオボタンの取得
                     RadioButton radioButton = (RadioButton) findViewById(checkedId);
 
                     // ラジオボタンのテキストを取得
-                    timedivision = radioButton.getText().toString();
-                    Log.v("checked", timedivision);
-
+                    timeDivision = radioButton.getText().toString();
+                    Log.v("checked", timeDivision);
 
                 } else {
                     // 何も選択されていない場合の処理
+                    flag = false;
                 }
             }
         });
@@ -58,6 +63,8 @@ public class Content extends AppCompatActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId != -1) {
+                    flag = true;
+
                     // 選択されているラジオボタンの取得
                     RadioButton radioButton = (RadioButton) findViewById(checkedId);
 
@@ -65,36 +72,55 @@ public class Content extends AppCompatActivity {
                     plans = radioButton.getText().toString();
                     Log.v("checked", plans);
 
+                    //予定に応じで色分け　⇒　DBには予定ごとに色付けされた情報が入る
+                    switch(plans){
+                        case "講義":
+                            color = "#FF0000";
+                            break;
+                        case "サークル":
+                            color = "#0000FF";
+                            break;
+                        case "友人":
+                            color = "#00FF00";
+                            break;
+                        default:
+                            throw new IllegalStateException("Unexpected value: " + plans);
+                    }
+                    Log.v("checked", color);
 
                 } else {
                     // 何も選択されていない場合の処理
+                    flag = false;
                 }
             }
         });
-
     }
 
     // 決定ボタンクリック処理
     public void onButtonKettei(View v){
-
         //SQLのセットアップ
         MyOpenHelper helper = new MyOpenHelper(this);
         final SQLiteDatabase db = helper.getWritableDatabase();
 
-        //DB内に格納する配列的なものと、1つ1つのデータ
-        ContentValues insertValues = new ContentValues();
-        insertValues.put("Date",currentDate);
-        insertValues.put("TimeDivision", timedivision);
-        insertValues.put("Plans",plans);
+        if(flag) {
+            //DB内に格納する配列的なものと、1つ1つのデータ
+            ContentValues insertValues = new ContentValues();
+            insertValues.put("Date", currentDate);
+            insertValues.put("TimeDivision", timeDivision);
+            insertValues.put("Plans", plans);
+            insertValues.put("Colors", color);
 
-        //DBに格納する
-        long id = db.insert("Schedule", currentDate, insertValues);
+            //DBに格納する
+            long id = db.insert("Schedule", currentDate, insertValues);
+
+        }
 
         //画面遷移
-        Intent dbIntent = new Intent(Content.this, ShowDataBase.class);
+        Intent dbIntent = new Intent(Content.this, MainActivity.class);
         startActivity(dbIntent);
-
+        db.close();
     }
+
     //削除ボタンクリック処理
     public void onButtonDelete(View v){
         //SQLのセットアップ
@@ -103,5 +129,13 @@ public class Content extends AppCompatActivity {
 
         //DB内のデータ全削除
         db.delete("Schedule", null, null);
+        db.close();
+    }
+
+    //DB内のデータ確認ボタンクリック処理
+    public void onButtonDB(View v){
+        //画面遷移
+        Intent dbIntent = new Intent(Content.this, ShowDataBase.class);
+        startActivity(dbIntent);
     }
 }
