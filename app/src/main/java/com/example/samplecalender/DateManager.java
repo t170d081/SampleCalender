@@ -1,5 +1,10 @@
 package com.example.samplecalender;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.content.Context;
+import android.util.Log;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -7,8 +12,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+
 public class DateManager {
     Calendar mCalendar;
+    Context context;
 
     public DateManager(){
         mCalendar = Calendar.getInstance();

@@ -10,7 +10,11 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class Content extends AppCompatActivity {
 
@@ -26,11 +30,13 @@ public class Content extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         //日付データ識別
         setContentView(R.layout.activity_content);
         TextView text = (TextView)findViewById(R.id.textview_id);
         Intent intent = getIntent();
         currentDate = intent.getStringExtra("date");
+
 
         //日付データ表示関連
         text.setText(currentDate);

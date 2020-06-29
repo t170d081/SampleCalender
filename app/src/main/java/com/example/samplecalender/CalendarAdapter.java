@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,9 +13,11 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class CalendarAdapter extends BaseAdapter {
     private List<Date> dateArray;
@@ -24,11 +25,13 @@ public class CalendarAdapter extends BaseAdapter {
     private DateManager mDateManager;
     private LayoutInflater mLayoutInflater;
 
+    private String dateText;
+    private String timedivision;
+    private String amText;
+    private String pmText;
+    private String nightText;
 
-    private String plans;
-    private String amText = "#ffffff";
-    private String pmText = "#ffffff";
-    private String nightText = "#ffffff";
+    private String sdfDate;
 
 
     //カスタムセルを拡張したらここでWigetを定義
@@ -55,6 +58,7 @@ public class CalendarAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
+
         if (convertView == null) {
             convertView = mLayoutInflater.inflate(R.layout.calendar_cell, null);
             holder = new ViewHolder();
@@ -76,9 +80,13 @@ public class CalendarAdapter extends BaseAdapter {
         SimpleDateFormat dateFormat = new SimpleDateFormat("d", Locale.US);
         holder.dateText.setText(dateFormat.format(dateArray.get(position)));
 
+
         //当月以外のセルをグレーアウト
         if (mDateManager.isCurrentMonth(dateArray.get(position))){
             convertView.setBackgroundColor(Color.WHITE);
+            if(mDateManager.isToday(dateArray.get(position))){
+                convertView.setBackgroundColor(Color.YELLOW);
+            }
         }else {
             convertView.setBackgroundColor(Color.LTGRAY);
         }
@@ -88,41 +96,47 @@ public class CalendarAdapter extends BaseAdapter {
         SQLiteDatabase db = helper.getReadableDatabase();
 
         //queryメソッドの実行例(おそらくDBのテーブルについて)
-        Cursor c = db.query("Schedule", new String[] {"TimeDivision","Colors"},
+        Cursor c = db.query("Schedule", new String[] {"Date","TimeDivision","Colors"},
                 null, null, null, null, null);
 
         boolean mov = c.moveToFirst();
         while (mov) {
-            plans = c.getString(0);
-            Log.v("checked", plans);
+            dateText = c.getString(0);
+            timedivision = c.getString(1);
+
+            //色初期化
+            amText = "#ffffff";
+            pmText = "#ffffff";
+            nightText = "#ffffff";
 
             //DB内の時間ごとの予定を見て色を確保
-            switch(plans){
+            switch(timedivision){
                 case "午前":
-                    amText = c.getString(1);
+                    amText = c.getString(2);
+                    if(isPlanday(dateArray.get(position),dateText)){
+                        holder.am.setBackgroundColor(Color.parseColor(amText));
+                    }
                     break;
                 case "昼間":
-                    pmText = c.getString(1);
+                    pmText = c.getString(2);
+                    if(isPlanday(dateArray.get(position),dateText)){
+                        holder.pm.setBackgroundColor(Color.parseColor(pmText));
+                    }
                     break;
                 case "夜":
-                    nightText = c.getString(1);
+                    nightText = c.getString(2);
+                    if(isPlanday(dateArray.get(position),dateText)){
+                        holder.night.setBackgroundColor(Color.parseColor(nightText));
+                    }
                     break;
                 default:
                     break;
             }
+
             mov = c.moveToNext();
         }
         c.close();
         db.close();
-
-
-        //当日の背景を黄色に（今回追記）
-        if (mDateManager.isToday(dateArray.get(position))) {
-            /*convertView.setBackgroundColor(Color.YELLOW);*/
-            holder.am.setBackgroundColor(Color.parseColor(amText));
-            holder.pm.setBackgroundColor(Color.parseColor(pmText));
-            holder.night.setBackgroundColor(Color.parseColor(nightText));
-        }
 
         //日曜日を赤、土曜日を青に
         int colorId;
@@ -150,7 +164,9 @@ public class CalendarAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
-        return dateArray.get(position);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        sdf.setTimeZone(TimeZone.getTimeZone("JST"));
+        return sdf.format(dateArray.get(position));
     }
 
     //表示月を取得
@@ -172,4 +188,15 @@ public class CalendarAdapter extends BaseAdapter {
         dateArray = mDateManager.getDays();
         this.notifyDataSetChanged();
     }
+
+    //予定追加日の色付け判定
+
+    public boolean isPlanday(Date date, String lu){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        sdf.setTimeZone(TimeZone.getTimeZone("JST"));
+        sdfDate = sdf.format(date);
+
+        return lu.equals(sdfDate);
+    }
+
 }
