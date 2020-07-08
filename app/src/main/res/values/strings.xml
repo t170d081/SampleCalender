@@ -1,4 +1,28 @@
 <resources>
-    <string name="app_name">Sample Calender</string>
+    <string name="app_name">Simple Schedule System</string>
     <string name="textview_label">This is a TextView sample.</string>
+    <string name="todayplan_label">This is a TodayPlan</string>
+    <string name="SpinnnerDel_label">項目を選択してください</string>
+
+    <string-array name="Color_list">
+        <item>青</item>
+        <item>水色</item>
+        <item>紺</item>
+        <item>濃紺</item>
+        <item>紫</item>
+        <item>うす紫</item>
+        <item>赤</item>
+        <item>茶色</item>
+        <item>エンジ</item>
+        <item>オレンジ</item>
+        <item>ピンク</item>
+        <item>ショッキングピンク</item>
+        <item>緑</item>
+        <item>深緑</item>
+        <item>黄緑</item>
+        <item>青緑</item>
+        <item>黄色</item>
+        <item>赤黄</item>
+        <item>黒</item>
+    </string-array>
 </resources>

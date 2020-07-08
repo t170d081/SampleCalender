@@ -54,4 +54,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         intent.putExtra("date", mCalendarAdapter.getItem(position).toString());
         startActivity(intent);
     }
+
+    //予定編集ボタンクリック画面遷移処理
+    public void onButtonHensyu(View v){
+        //画面遷移
+        Intent planIntent = new Intent(MainActivity.this, YoteiHensyuu.class);
+        startActivity(planIntent);
+    }
 }

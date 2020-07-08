@@ -7,22 +7,29 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class MyOpenHelper extends SQLiteOpenHelper {
 
+    static final String CREATE_TABLE_SCHEDULE ="create table Schedule(" + "Date text not null," +
+            "TimeDivision text," + "Plans text," + "Colors text" + " );";
+
+    static final String CREATE_TABLE_PLANS ="create table Plans("+ "_id integer primary key autoincrement,"+
+            "Plans text not null,"+"Color text,"+"ColorCode text"+");";
+
     //コンストラクタ
     public MyOpenHelper(Context context) {
-        super(context, "NameAgeDB", null, 1);
+        super(context, "CalendarDB", null, 1);
     }
 
 
     //SQLのコマンドしてくれている？
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table Schedule(" + " Date text not null," + "TimeDivision text," +
-                "Plans text," + "Colors text" + " );");
+        db.execSQL(CREATE_TABLE_SCHEDULE);
+        db.execSQL(CREATE_TABLE_PLANS);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
+        onCreate(db);
     }
 
 }

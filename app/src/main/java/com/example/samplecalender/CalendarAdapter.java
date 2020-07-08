@@ -99,33 +99,36 @@ public class CalendarAdapter extends BaseAdapter {
         Cursor c = db.query("Schedule", new String[] {"Date","TimeDivision","Colors"},
                 null, null, null, null, null);
 
+        //色初期化と色付け初期化
+        amText = "#FFFFFF";
+        pmText = "#FFFFFF";
+        nightText = "#FFFFFF";
+        holder.am.setBackgroundColor(Color.parseColor(amText));
+        holder.pm.setBackgroundColor(Color.parseColor(pmText));
+        holder.night.setBackgroundColor(Color.parseColor(nightText));
+
         boolean mov = c.moveToFirst();
         while (mov) {
             dateText = c.getString(0);
             timedivision = c.getString(1);
 
-            //色初期化
-            amText = "#ffffff";
-            pmText = "#ffffff";
-            nightText = "#ffffff";
-
             //DB内の時間ごとの予定を見て色を確保
             switch(timedivision){
                 case "午前":
-                    amText = c.getString(2);
                     if(isPlanday(dateArray.get(position),dateText)){
+                        amText = c.getString(2);
                         holder.am.setBackgroundColor(Color.parseColor(amText));
                     }
                     break;
                 case "昼間":
-                    pmText = c.getString(2);
                     if(isPlanday(dateArray.get(position),dateText)){
+                        pmText = c.getString(2);
                         holder.pm.setBackgroundColor(Color.parseColor(pmText));
                     }
                     break;
-                case "夜":
-                    nightText = c.getString(2);
+                case "夜中":
                     if(isPlanday(dateArray.get(position),dateText)){
+                        nightText = c.getString(2);
                         holder.night.setBackgroundColor(Color.parseColor(nightText));
                     }
                     break;
@@ -135,6 +138,7 @@ public class CalendarAdapter extends BaseAdapter {
 
             mov = c.moveToNext();
         }
+
         c.close();
         db.close();
 
