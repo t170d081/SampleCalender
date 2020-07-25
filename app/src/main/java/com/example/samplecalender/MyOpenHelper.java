@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class MyOpenHelper extends SQLiteOpenHelper {
 
     static final String CREATE_TABLE_SCHEDULE ="create table Schedule(" + "Date text not null," +
-            "TimeDivision text," + "Plans text," + "Colors text" + " );";
+            "TimeDivision text," + "Plans text," + "Colors text,"+"ColorText text"+ " );";
 
     static final String CREATE_TABLE_PLANS ="create table Plans("+ "_id integer primary key autoincrement,"+
             "Plans text not null,"+"Color text,"+"ColorCode text"+");";

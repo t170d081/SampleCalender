@@ -1,10 +1,12 @@
 package com.example.samplecalender;
 
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -26,12 +28,17 @@ public class Content extends AppCompatActivity {
     private String timeDivision = "なし";
     private String plans = "なし";
     private String color = "#FFFFFF";
+    private String colorText = "";
 
-    private String amtext="空き";
-    private String pmtext="空き";
-    private String nighttext="空き";
+    private String amtext;
+    private String pmtext;
+    private String nighttext;
 
-    private boolean notSelectflag;
+    private boolean notSelecttimeflag = true;
+    private boolean notSelectplanflag;
+    MyOpenHelper helper = new MyOpenHelper(this);
+    private ProgressDialog progressDialog;
+    Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,42 +53,7 @@ public class Content extends AppCompatActivity {
         //日付データ表示関連
         text.setText(currentDate);
 
-        //SQLのセットアップ
-        MyOpenHelper helper = new MyOpenHelper(this);
-        final SQLiteDatabase db = helper.getWritableDatabase();
-
-        Cursor c = db.query("Schedule", new String[] {"Date","TimeDivision","Plans"},
-                null, null, null, null, null);
-
-        boolean mov = c.moveToFirst();
-        while (mov) {
-            if(currentDate.equals(c.getString(0))){
-                switch(c.getString(1)){
-                    case "午前":
-                        if(!c.getString(2).equals("null"))
-                        amtext = c.getString(2);
-                        break;
-                    case "昼間":
-                        if(!c.getString(2).equals("null"))
-                        pmtext = c.getString(2);
-                        break;
-                    case "夜中":
-                        if(!c.getString(2).equals("null"))
-                        nighttext = c.getString(2);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            mov = c.moveToNext();
-        }
-        TextView textView = (TextView)findViewById(R.id.todayPlan);
-        textView.setText(String.format("午前:%s  昼間:%s  夜中:%s", amtext,
-                pmtext,nighttext));
-        c.close();
-        db.close();
-
-
+        dayPlanSetText();
         judgeRadio();
         initSpinners();
     }
@@ -92,7 +64,7 @@ public class Content extends AppCompatActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId != -1) {
-                    notSelectflag = true;
+                    notSelecttimeflag = false;
 
                     // 選択されているラジオボタンの取得
                     RadioButton radioButton = (RadioButton) findViewById(checkedId);
@@ -103,7 +75,7 @@ public class Content extends AppCompatActivity {
 
                 } else {
                     // 何も選択されていない場合の処理
-                    notSelectflag = false;
+                    notSelecttimeflag = true;
                 }
             }
         });
@@ -111,7 +83,6 @@ public class Content extends AppCompatActivity {
 
     private void initSpinners(){
         //削除スピナーとDBとの連結関連
-        MyOpenHelper helper = new MyOpenHelper(this);
         final SQLiteDatabase db = helper.getWritableDatabase();
 
         Cursor c = db.query("Plans", new String[] {"_id","Plans","Color","ColorCode"},
@@ -146,6 +117,7 @@ public class Content extends AppCompatActivity {
                 text.setText(select);
 
                 plans = cursor.getString(1);
+                colorText = cursor.getString(2);
                 color = cursor.getString(3);
             }
             public void onNothingSelected(AdapterView parent) {
@@ -154,52 +126,233 @@ public class Content extends AppCompatActivity {
         });
     }
 
-    // 決定ボタンクリック処理
-    public void onButtonKettei(View v){
+    private void dayPlanSetText(){
+        amtext="空き";
+        pmtext="空き";
+        nighttext="空き";
+
         //SQLのセットアップ
-        MyOpenHelper helper = new MyOpenHelper(this);
         final SQLiteDatabase db = helper.getWritableDatabase();
 
-        if(notSelectflag) {
+        Cursor c = db.query("Schedule", new String[] {"Date","TimeDivision","Plans"},
+                null, null, null, null, null);
+
+        boolean mov = c.moveToFirst();
+        while (mov) {
+            if(currentDate.equals(c.getString(0))){
+                switch(c.getString(1)){
+                    case "午前":
+                        if(!c.getString(2).equals("null"))
+                            amtext = c.getString(2);
+                        break;
+                    case "昼間":
+                        if(!c.getString(2).equals("null"))
+                            pmtext = c.getString(2);
+                        break;
+                    case "夜中":
+                        if(!c.getString(2).equals("null"))
+                            nighttext = c.getString(2);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            mov = c.moveToNext();
+        }
+        TextView textView = (TextView)findViewById(R.id.todayPlan);
+        textView.setText(String.format("午前:%s  昼間:%s  夜中:%s", amtext,
+                pmtext,nighttext));
+        c.close();
+        db.close();
+    }
+
+    // 決定ボタンクリック処理
+    public void onButtonKettei(View v){
+        //何も選択されていないフラグ
+        notSelectplanflag = false;
+
+        System.out.println("aaaa"+plans);
+
+        if(plans.equals("なし")) notSelectplanflag = true;
+        System.out.println("kettei(1)selecttime" + notSelecttimeflag + notSelectplanflag);
+
+        if((!notSelecttimeflag) && (!notSelectplanflag)) {
+
+            //ハンドラを生成
+            mHandler = new Handler();
+
+            //ProgressDialogを生成します。
+            progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage(timeDivision+"の予定を登録中");
+
+            //ProgressDialogを表示します。
+            progressDialog.show();
+
+            //スレッドを生成して起動します。
+            Content.MyThread thread = new Content.MyThread();
+            thread.start();
+        }
+        else if(notSelecttimeflag && notSelectplanflag){
+            Toast myToast = Toast.makeText(
+                    getApplicationContext(),
+                    "登録する[時間][予定]を選択してください",
+                    Toast.LENGTH_SHORT
+            );
+            myToast.show();
+        }
+        else if(notSelecttimeflag){
+            Toast myToast = Toast.makeText(
+                    getApplicationContext(),
+                    "登録する[時間]を選択してください",
+                    Toast.LENGTH_SHORT
+            );
+            myToast.show();
+        }
+        else if(notSelectplanflag){
+            Toast myToast = Toast.makeText(
+                    getApplicationContext(),
+                    "登録する[予定]を選択してください",
+                    Toast.LENGTH_SHORT
+            );
+            myToast.show();
+        }
+
+    }
+
+    class MyThread extends Thread {
+        public void run() {
+            //時間のかかる処理
             //DB内に格納する配列的なものと、1つ1つのデータ
             ContentValues insertValues = new ContentValues();
             insertValues.put("Date", currentDate);
             insertValues.put("TimeDivision", timeDivision);
             insertValues.put("Plans", plans);
             insertValues.put("Colors", color);
+            insertValues.put("ColorText", colorText);
 
             //DBに格納する
+            final SQLiteDatabase db = helper.getWritableDatabase();
             db.insert("Schedule", currentDate, insertValues);
+            db.close();
 
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            //メインスレッドのメッセージキューにメッセージを登録します。
+            mHandler.post(new Runnable() {
+                //run()の中の処理はメインスレッドで動作されます。
+                public void run() {
+                    //追加予定を確認できるよう表示
+                    dayPlanSetText();
+
+                    //ProgressDialogを消去します。
+                    progressDialog.dismiss();
+
+                    Toast myToast = Toast.makeText(
+                            getApplicationContext(),
+                            timeDivision+"に予定["+plans+" : "+colorText+"]の登録が完了しました",
+                            Toast.LENGTH_SHORT
+                    );
+                    myToast.show();
+                }
+            });
         }
+    }
 
-        //画面遷移
-        Intent dbIntent = new Intent(Content.this, MainActivity.class);
-        startActivity(dbIntent);
-        db.close();
+    //戻るボタン処理
+    public void onButtonBack(View v){
+        Intent intent = new Intent(Content.this, MainActivity.class);
+        startActivity(intent);
     }
 
     //削除ボタンクリック処理
     public void onButtonDelete(View v){
+        boolean delete = true;
         //SQLのセットアップ
-        MyOpenHelper helper = new MyOpenHelper(this);
         final SQLiteDatabase db = helper.getWritableDatabase();
 
-        //DB内のデータ全削除
-        db.delete("Schedule", "Date=? and TimeDivision=?",
-                new String[] {currentDate,timeDivision });
-        db.close();
+        String setText="";
+
+
+        if(!notSelecttimeflag) {
+            switch (timeDivision) {
+                case "午前":
+                    if (!amtext.equals("空き")) {
+                        setText = timeDivision + "の削除が完了しました";
+
+                        //DB内のデータ削除
+                        db.delete("Schedule", "Date=? and TimeDivision=?",
+                                new String[]{currentDate, timeDivision});
+                        db.close();
+                    }else{
+                        setText = timeDivision + "には予定が入っていません";
+                    }
+                    break;
+                case "昼間":
+                    if (!pmtext.equals("空き")) {
+                        setText = timeDivision + "の削除が完了しました";
+
+                        //DB内のデータ削除
+                        db.delete("Schedule", "Date=? and TimeDivision=?",
+                                new String[]{currentDate, timeDivision});
+                        db.close();
+                    }
+                    else{
+                        setText = timeDivision + "には予定が入っていません";
+                    }
+                    break;
+                case "夜中":
+                    if (!nighttext.equals("空き")) {
+                        setText = timeDivision + "の削除が完了しました";
+
+                        //DB内のデータ削除
+                        db.delete("Schedule", "Date=? and TimeDivision=?",
+                                new String[]{currentDate, timeDivision});
+                        db.close();
+                    }
+                    else{
+                        setText = timeDivision + "には予定が入っていません";
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }else{
+            setText = "削除を行う[時間]を選択してください";
+        }
+
+        Toast myToast = Toast.makeText(
+                getApplicationContext(),
+                setText,
+                Toast.LENGTH_SHORT
+        );
+        myToast.show();
+        dayPlanSetText();
     }
 
-    //削除ボタンクリック処理
+    //今日の削除ボタンクリック処理
     public void onButtontodayDelete(View v){
+        String setText = "指定日の予定削除が完了しました";
+        if(amtext.equals("空き") && pmtext.equals("空き") && nighttext.equals("空き"))
+            setText = "指定日には予定が入っていません";
+
         //SQLのセットアップ
-        MyOpenHelper helper = new MyOpenHelper(this);
         final SQLiteDatabase db = helper.getWritableDatabase();
 
         //DB内のデータ全削除
         db.delete("Schedule", "Date=?", new String[] {currentDate});
         db.close();
+
+        Toast myToast = Toast.makeText(
+                getApplicationContext(),
+                setText,
+                Toast.LENGTH_SHORT
+        );
+        myToast.show();
+        dayPlanSetText();
     }
 
     //予定編集ボタンクリック画面遷移処理
@@ -210,15 +363,20 @@ public class Content extends AppCompatActivity {
     }
 
     public void onButtonRestart(View v){
-        Intent intent = new Intent(Content.this, Content.class);
-        intent.putExtra("date", currentDate);
-        startActivity(intent);
+        initSpinners();
+        dayPlanSetText();
+        Toast myToast = Toast.makeText(
+                getApplicationContext(),
+                "更新が完了しました",
+                Toast.LENGTH_SHORT
+        );
+        myToast.show();
+        dayPlanSetText();
     }
 
     //オール削除ボタン処理
     public void onButtonAllDelete(View v){
         //SQLのセットアップ
-        MyOpenHelper helper = new MyOpenHelper(this);
         final SQLiteDatabase db = helper.getWritableDatabase();
 
         //DB内のデータ全削除

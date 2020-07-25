@@ -29,8 +29,8 @@ public class ShowDataBase extends Activity {
         System.out.println("flug"+flug);
         if(flug) {
             // queryメソッドの実行例(おそらくDBのテーブルについて)
-            Cursor c = db.query("Schedule", new String[] {"Date", "TimeDivision","Plans","Colors"},
-                    null, null, null, null, null);
+            Cursor c = db.query("Schedule", new String[] {"Date", "TimeDivision","Plans",
+                            "ColorText"}, null, null, null, null, null);
 
             boolean mov = c.moveToFirst();
             while (mov) {
